@@ -3,3 +3,4 @@ export * from './http.contants';
 export * from './http.interface';
 export * from './httpclient.service';
 export * from './httpclient.decorator';
+export * from './circuit-breaker.service';
