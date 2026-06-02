@@ -1,9 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import type { AxiosInstance, AxiosRequestConfig } from 'axios';
+import { CircuitBreakerService } from './circuit-breaker.service';
 
 @Injectable()
 export class HttpclientService {
-  constructor(private readonly client: AxiosInstance) {}
+  constructor(
+    private readonly client: AxiosInstance,
+    private readonly circuitBreakerService?: CircuitBreakerService,
+  ) {}
 
   get<T>(
     url: string,
@@ -44,4 +48,21 @@ export class HttpclientService {
   getRawClient() {
     return this.client;
   }
+
+  /**
+   * Get circuit breaker status for monitoring
+   * Returns undefined if circuit breaker is not configured
+   */
+  getCircuitBreakerStatus() {
+    return this.circuitBreakerService?.getStatus();
+  }
+
+  /**
+   * Reset circuit breaker(s) for this client
+   * @param key Optional specific circuit breaker key to reset. If not provided, resets all.
+   */
+  resetCircuitBreaker(key?: string) {
+    this.circuitBreakerService?.reset(key);
+  }
 }
+

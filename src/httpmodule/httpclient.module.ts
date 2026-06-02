@@ -4,10 +4,13 @@ import axios, { AxiosInstance } from 'axios';
 import { HttpclientService } from './httpclient.service';
 import { getHttpClientToken } from './http.contants';
 import { HttpClientConfig } from './http.interface';
+import { CircuitBreakerService } from './circuit-breaker.service';
 
 @Module({})
 export class HttpClientModule {
   static register(configs: HttpClientConfig[]): DynamicModule {
+    const circuitBreakerService = new CircuitBreakerService();
+
     const providers: Provider[] = configs.map((config) => {
       const axiosClient: AxiosInstance = axios.create({
         timeout: config.timeout ?? 5000,
@@ -62,7 +65,17 @@ export class HttpClientModule {
         );
       });
 
-      const service = new HttpclientService(axiosClient);
+      // Apply circuit breaker if configured
+      let clientToUse = axiosClient;
+      if (config.circuitBreaker) {
+        clientToUse = circuitBreakerService.wrapAxiosInstance(
+          axiosClient,
+          config.circuitBreaker,
+          config.name,
+        );
+      }
+
+      const service = new HttpclientService(clientToUse, circuitBreakerService);
 
       return {
         provide: getHttpClientToken(config.name),
