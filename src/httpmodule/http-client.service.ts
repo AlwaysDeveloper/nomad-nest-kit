@@ -76,28 +76,19 @@ export class HttpClientService implements OnModuleInit {
    * whole client). Pass a per-route key (e.g. the route template) if you
    * want isolation between endpoints on the same base URL.
    */
-  async request<T = any>(
-    config: AxiosRequestConfig,
-    breakerKey = 'default',
-  ): Promise<AxiosResponse<T>> {
-    const execute = () => firstValueFrom(this.httpService.request<T>(config));
+  async request<T = any>(config: AxiosRequestConfig, breakerKey = 'default'): Promise<AxiosResponse<T>> {
+    const execute = (cfg: AxiosRequestConfig) => firstValueFrom(this.httpService.request<T>(cfg));
 
     if (this.options.circuitBreaker === false) {
-      return execute();
+      return execute(config);
     }
 
-    const breaker = this.breakerRegistry.getBreaker(
-      breakerKey,
-      execute,
-      this.options.circuitBreaker ?? {},
-    );
+    const breaker = this.breakerRegistry.getBreaker(breakerKey, execute, this.options.circuitBreaker ?? {});
 
     try {
-      return await breaker.fire();
+      return await breaker.fire(config); // ← pass config as the fire() argument
     } catch (err: any) {
-      this.logger.error(
-        `${config.method?.toUpperCase()} ${config.url} failed [breaker="${breakerKey}"]: ${err.message}`,
-      );
+      this.logger.error(`${config.method?.toUpperCase()} ${config.url} failed [breaker="${breakerKey}"]: ${err.message}`);
       throw err;
     }
   }
