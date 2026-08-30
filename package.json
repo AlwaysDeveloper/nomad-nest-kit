@@ -22,7 +22,7 @@
     "@nestjs/core": "^11.0.1",
     "@nestjs/axios": "^4.0.1",
     "ioredis": "^5.11.0",
-    "opossum": "^8.1.0",
+    "opossum": "^10.0.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.1"
   },
